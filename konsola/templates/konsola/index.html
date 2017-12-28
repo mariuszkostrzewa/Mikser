@@ -1,0 +1,9 @@
+{% if latest_results %}
+    <ul>
+    {% for question in latest_results %}
+        <li><a href="/polls/{{ question.ph }}/">{{ question.ec }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
