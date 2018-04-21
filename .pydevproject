@@ -13,4 +13,7 @@
 <path>/${PROJECT_DIR_NAME}</path>
 </pydev_pathproperty>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python interpreter</pydev_property>
+<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+<path>C:\Users\kostrm11\Downloads\fcntl.py.zip</path>
+</pydev_pathproperty>
 </pydev_project>

@@ -1,0 +1,75 @@
+<html>
+<body>
+
+{% block extrajs %}
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/modules/xrange.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+{% endblock %}
+
+	<div class="panel panel-default">
+		<div id="chart_panel" class="panel-body" style="width:1200px;height:400px"></div>
+    </div>
+    
+    <script type="text/javascript">
+$(document).ready(function() {
+
+     var xRangeOptions = {
+        chart: {
+            renderTo: 'chart_panel',
+            type: 'xrange',
+            zoomType: 'x'
+        },
+        legend: {enabled: false},
+        title: {text: 'Tabela podlewania'},
+        subtitle: {text: 'Widok dnia'},
+        xAxis: {title: {text: 'Godzina'}, labels: {rotation: -60}, type: 'datetime', tickInterval: 1800000},
+        yAxis: {title: {text: 'Sekcja'}},
+        series: [{}],
+    };
+
+    var chartDataUrl = "{% url 'xrange_json' %}";
+    $.getJSON(chartDataUrl,
+        function(data) {
+			var cats = [];
+			var i=0;
+			xRangeOptions.yAxis.categories=[];
+			xRangeOptions.series[0].data=[];
+			
+  			$.each(JSON.parse(data), function( key, val ) {
+    			cats.push(key);
+    			
+    			xRangeOptions.yAxis.categories[i]=key;
+    			var len=val.length;	
+    			
+    			for(var j = 0; j < len; j++){
+    				pos=val[j];
+    				var x=pos[0];
+    				var x2=pos[1];
+    				
+    				var rightNow = new Date();
+					var res = rightNow.toISOString().slice(0,10);
+    				
+					dx=res+'T'+x;
+					dx2=res+'T'+x2;
+
+    				var xDate = new Date(dx);
+    				var x2Date = new Date(dx2);
+    				
+    				dic={'x':xDate.getTime(), 'x2':x2Date.getTime(), 'y':i};
+    				xRangeOptions.series[0].data.push(dic);	
+    			}	
+    			i++;
+  			});
+
+//			console.log(xRangeOptions);
+            var chart = new Highcharts.Chart(xRangeOptions);
+    });
+
+} );
+</script>
+
+	</body>
+</html>
+
