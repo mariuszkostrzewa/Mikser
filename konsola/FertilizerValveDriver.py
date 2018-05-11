@@ -8,6 +8,7 @@ import threading
 import time
 from .PID import PID
 from datetime import datetime
+from tkinter.constants import SEL
 
 KP=0.4
 KI=0.01
@@ -46,11 +47,14 @@ class FertilizerValveDriver:
         self.cv_low=cv_low
         self.cv_high=cv_high
         
+        self.debug=False
+        
     def run(self, timeDelta, sondaClass, parameter, setValue):        
         
-        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-        print("%s Fertilizer start %s." % (timeStr,self.pin))
-        print("timeDelta: %s sondaValue %s setValue %s" % (timeDelta, sondaClass.get(parameter), setValue))
+        if self.debug:
+            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+            print("%s Fertilizer start %s." % (timeStr,self.pin))
+            print("timeDelta: %s sondaValue %s setValue %s" % (timeDelta, sondaClass.get(parameter), setValue))
         
         self.active=True
         
@@ -73,18 +77,21 @@ class FertilizerValveDriver:
         time.sleep(timeDelta.total_seconds())
         GPIO.output(self.pin, GPIO.LOW)
         self.active=False
-        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-        print("%s Fertilizer stop %s." % (timeStr,self.pin))
+        
+        if self.debug:
+            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+            print("%s Fertilizer stop %s." % (timeStr,self.pin))
             
     def pidTimer(self, sondaClass, parameter, setValue):
         self.pid.SetPoint=float(setValue)
         while self.active:
             self.pid.update(sondaClass.get(parameter))
-#             self.pid.update(1)
-            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-            print("%s Fertilizer sondaValue %s PID Output: %s" % (timeStr,sondaClass.get(parameter), self.pid.output))
-            time.sleep(0.1)
+
+            if self.debug:
+                timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+                print("%s Fertilizer sondaValue %s PID Output: %s" % (timeStr,sondaClass.get(parameter), self.pid.output))
             
+            time.sleep(0.1)
             
     def valveRunner(self):
         self.last_time_ml=int(round(time.time() * 1000))
@@ -106,7 +113,9 @@ class FertilizerValveDriver:
                 pidPercentage=self.getPidOutput()
                 timeOn=10*pidPercentage
                 timeOff=1000-timeOn
-                print("Valve drive: %s, timeOn: %s, timeOff: %s" % (self.pin, timeOn, timeOff))
+                
+                if self.debug:
+                    print("Valve drive: %s, timeOn: %s, timeOff: %s" % (self.pin, timeOn, timeOff))
                 
                 if self.valveOpen == False:
 #                     sprawdz czy nie uplynal czas OFF
@@ -115,17 +124,20 @@ class FertilizerValveDriver:
                         GPIO.output(self.pin, GPIO.HIGH)
                         self.valveOpen=True
                         self.valveChangeTime_ml=self.current_time_ml
-                        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-                        print("%s Valve OPEN" % timeStr)
+                        
+                        if self.debug:
+                            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+                            print("%s Valve OPEN" % timeStr)
                 elif self.valveOpen==True:
                     if changeTimeDelta>timeOn and pidPercentage<100:
 #                         zamknij zawor
                         GPIO.output(self.pin, GPIO.LOW)
                         self.valveOpen=False
                         self.valveChangeTime_ml=self.current_time_ml
-                        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-                        print("%s Valve CLOSE" % timeStr)
                         
+                        if self.debug:
+                            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+                            print("%s Valve CLOSE" % timeStr)
 #                 lastTime
                 self.last_time_ml = self.current_time_ml
             
@@ -148,9 +160,10 @@ class FertilizerValveDriver:
             elif outputRaw<xMax:
                 outputRaw=xMax
             
-        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-        outputPid=self.translate(outputRaw, xMin, xMax, self.cv_low, self.cv_high)
-        print("%s getPidOutput PID: %s PID_RAW: %s xMin: %s xMax: %s" % (timeStr,outputPid, outputRaw, xMin, xMax))
+        if self.debug:
+            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+            outputPid=self.translate(outputRaw, xMin, xMax, self.cv_low, self.cv_high)
+            print("%s getPidOutput PID: %s PID_RAW: %s xMin: %s xMax: %s" % (timeStr,outputPid, outputRaw, xMin, xMax))
         
         return self.translate(outputRaw, xMin, xMax, self.cv_low, self.cv_high)    
     

@@ -26,11 +26,13 @@ class PumpDriver:
         self.timerThread=None
         self.checkThread=None
         self.active=False
+        self.debug=False
 
     def changeOn(self, timeDelta):
         
-        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-        print("%s: Pompa start: for %s" % (timeStr,timeDelta))
+        if self.debug:
+            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+            print("%s: Pompa start: for %s" % (timeStr,timeDelta))
     
         self.active=True
         GPIO.output(PIN_INLET, GPIO.HIGH)
@@ -51,8 +53,10 @@ class PumpDriver:
         time.sleep(0.1)
         GPIO.output(PIN_INLET, GPIO.LOW)
         GPIO.output(PIN_PUMP, GPIO.LOW)
-        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-        print("%s PUMP stop." % timeStr)
+        
+        if self.debug:
+            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+            print("%s PUMP stop." % timeStr)
         
     def check(self):
         while(self.active):
@@ -68,9 +72,5 @@ class PumpDriver:
                 GPIO.output(PIN_PUMP, GPIO.LOW)
             elif GPIO.input(FLS_BOTTON_PIN)==FLS_HIGH_VALUE and self.active:
                 GPIO.output(PIN_PUMP, GPIO.HIGH)
-                
-                
-            time.sleep(2)
-        
-if __name__ == '__main__':
-    pass
+                 
+            time.sleep(1)

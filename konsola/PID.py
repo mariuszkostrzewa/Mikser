@@ -17,6 +17,7 @@ class PID:
         self.sample_time = 0.10
         self.current_time = time.time()
         self.last_time = self.current_time
+        self.debug=False
 
         self.clear()
 
@@ -66,10 +67,11 @@ class PID:
             self.last_time = self.current_time
             self.last_error = error
 
-            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-            I=self.Ki * self.ITerm
-            D=self.Kd * self.DTerm
-            print("%s P: %s, I: %s, D: %s setPoint: %s, feedback: %s, error: %s" % (timeStr,self.PTerm, I, D, self.SetPoint, feedback_value, error))
+            if self.debug:
+                timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+                I=self.Ki * self.ITerm
+                D=self.Kd * self.DTerm
+                print("%s P: %s, I: %s, D: %s setPoint: %s, feedback: %s, error: %s" % (timeStr,self.PTerm, I, D, self.SetPoint, feedback_value, error))
         
             self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
 

@@ -2,15 +2,13 @@ from .models import Watering, Section, Recipe, Read
 from datetime import datetime, date
 from time import strftime
 from django.utils import timezone
-# from EmulatorGUI import GPIO
-# import RPi.GPIO as GPIO
 
 from time import sleep
 import threading
 import RPi.GPIO as GPIO
 
 import io         # used to create file streams
-import fcntl      # used to access I2C parameters like addresses
+# import fcntl      # used to access I2C parameters like addresses
 import time       # used for sleep delay and timestamps
 import string # helps parse strings
 
@@ -18,7 +16,6 @@ from .ValveDriver import ValveDriver
 from .PumpDriver import PumpDriver
 from .Sonda import Sonda
 from .FertilizerValveDriver import FertilizerValveDriver
-
 
 #FLOW LEVEL SENSOR
 FLS_UP_PIN=6
@@ -75,7 +72,7 @@ class Cron:
             newWatering=self.getWatering()
             if not (self.actWatering == newWatering):
                 timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-                print("%s: %s --> %s" % (timeStr, self.actWatering, newWatering))
+                print("%s: Watering: %s --> %s" % (timeStr, self.actWatering, newWatering))
                 
                 self.actWatering=newWatering
                 

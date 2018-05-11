@@ -7,7 +7,7 @@ Created on 19 sty 2018
 # from datetime import datetime, date
 from konsola.models import Read
 import json
-import time
+# import time
 
 class Reads(object):
     @classmethod
@@ -30,8 +30,8 @@ class Reads(object):
             
         series=[{'name':'ec', 'data':ec}, {'name':'ph','data':ph}, {'name':'t','data':t}]
 
+#         print('getJson-results:')
+#         print(json.dumps(series))
         
-        print('getJson-results:')
-        print(json.dumps(series))
         return json.dumps(series)
     
