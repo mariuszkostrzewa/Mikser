@@ -1,7 +1,6 @@
 from django.urls import path
 
 from . import views
-from ctypes.test.test_pickling import name
 
 urlpatterns = [
     path('', views.index, name='index'),

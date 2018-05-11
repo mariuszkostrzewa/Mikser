@@ -13,7 +13,7 @@
     </div>
     
     <script type="text/javascript">
-$(document).ready(function() {
+	$(document).ready(function() {
 
      var xRangeOptions = {
         chart: {
@@ -23,7 +23,21 @@ $(document).ready(function() {
         },
         legend: {enabled: false},
         title: {text: 'Mikser parametry Ec/pH/T'},
-        xAxis: {title: {text: 'Godzina'}, labels: {rotation: -60}, type: 'datetime', tickInterval: 1800000},
+        xAxis: {
+        	title: {text: 'Czas'}, 
+        	labels: {rotation: -60}, 
+        	type: 'datetime', 
+        	tickInterval: 60*1000,
+        	dateTimeLabelFormats: {
+            	second: '%H:%M:%S',
+            	minute: '%H:%M',
+            	hour: '%H:%M',
+            	day: '%e. %b',
+            	week: '%e. %b',
+            	month: '%b \'%y',
+            	year: '%Y'
+    		},
+        },
         yAxis: {title: {text: 'Parametr'}},
         series: [{}],
     };

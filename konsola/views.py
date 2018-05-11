@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.template import loader
 from .models import Read
 
-from highcharts.views import HighChartsBarView
+# from highcharts.views import HighChartsBarView
 from random import random
 from multiprocessing.sharedctypes import template
 from django.template.context_processors import request
