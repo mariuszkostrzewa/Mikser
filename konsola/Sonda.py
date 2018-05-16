@@ -17,7 +17,7 @@ class Sonda:
     default_bus = 1 # the default bus for I2C on the newer Raspberry Pis
     t_addr=102
     ph_addr = 99
-    ec_addr = 98
+    ec_addr = 100
     
     
 
@@ -95,16 +95,18 @@ class Sonda:
         if(self.t!=tFloat):
 #             aktualizacja T w eC
             self.t=tFloat
-#             self.set_i2c_address(self.ec_addr)
-#             self.query("string")
+            self.set_i2c_address(self.ec_addr)
+            self.query("T,%s" % self.t)
              
 #             aktualizacja T w Ph
             self.set_i2c_address(self.ph_addr)
             self.query("T,%s" % self.t)
 #             
 # #         odczyt Ec
-#         self.set_i2c_address(self.ec_addr)
-#         self.ec=self.query("string")
+        self.set_i2c_address(self.ec_addr)
+        ecNew=self.query("R")
+        ecStr=ecNew.replace('\x00', '')
+        self.ec=round(float(ecStr),2)
  
 #         odczyt Ph
         self.set_i2c_address(self.ph_addr)

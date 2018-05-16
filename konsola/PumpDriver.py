@@ -73,4 +73,4 @@ class PumpDriver:
             elif GPIO.input(FLS_BOTTON_PIN)==FLS_HIGH_VALUE and self.active:
                 GPIO.output(PIN_PUMP, GPIO.HIGH)
                  
-            time.sleep(1)
+            time.sleep(3)

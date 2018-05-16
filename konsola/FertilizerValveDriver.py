@@ -8,13 +8,13 @@ import threading
 import time
 from .PID import PID
 from datetime import datetime
-from tkinter.constants import SEL
 
-KP=0.4
+
+KP=0.1
 KI=0.01
 KD=3.0
 VALVE_SLEEP=0.1
-MIN_PAUSE=200 # in miliseconds
+MIN_PAUSE=100 # in miliseconds
 PID_Min=0
 PID_Max=100
 
@@ -27,7 +27,7 @@ REVERSE_ACTION=-1
 
 class FertilizerValveDriver:
     
-    def __init__(self, valve, action=REVERSE_ACTION, pv_low=PV_LOW, pv_high=PV_HIGH, cv_low=CV_LOW, cv_high=CV_HIGH):
+    def __init__(self, valve, action, pv_low, pv_high, cv_low=CV_LOW, cv_high=CV_HIGH):
         self.pin=valve
         self.timerThread=None
         self.pidThread=None

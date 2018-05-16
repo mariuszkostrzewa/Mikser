@@ -1,16 +1,16 @@
 from .models import Watering, Section, Recipe, Read
 from datetime import datetime, date
-from time import strftime
+# from time import strftime
 from django.utils import timezone
 
-from time import sleep
+# from time import sleep
 import threading
 import RPi.GPIO as GPIO
 
-import io         # used to create file streams
+# import io         # used to create file streams
 # import fcntl      # used to access I2C parameters like addresses
 import time       # used for sleep delay and timestamps
-import string # helps parse strings
+# import string # helps parse strings
 
 from .ValveDriver import ValveDriver
 from .PumpDriver import PumpDriver
@@ -32,6 +32,14 @@ PIN_S1=24
 #PUMP
 PIN_PUMP=26
 
+DIRECT_ACTION=1 #1 Direct Action, -1 Reverse Action
+REVERSE_ACTION=-1
+
+PH_PV_LOW=0
+PH_PV_HIGH=14
+EC_PV_LOW=0
+EC_PV_HIGH=10
+
 class Cron:
     
     def __init__(self):
@@ -41,11 +49,12 @@ class Cron:
         self.sectionValveDriver=ValveDriver()
         self.pump=PumpDriver()
         self.sonda=Sonda()
-        self.acidValveDriver=FertilizerValveDriver(PIN_ACID)
-        self.fertilizer1ValveDriver=FertilizerValveDriver(PIN_N1)
-        self.fertilizer2ValveDriver=FertilizerValveDriver(PIN_N2)
-        self.fertilizer3ValveDiver=FertilizerValveDriver(PIN_N3)
-        self.fertilizer4ValveDriver=FertilizerValveDriver(PIN_N4)
+        self.acidValveDriver=FertilizerValveDriver(PIN_ACID, REVERSE_ACTION, PH_PV_LOW, PH_PV_HIGH)
+        self.fertilizer1ValveDriver=FertilizerValveDriver(PIN_N1, DIRECT_ACTION, EC_PV_LOW, EC_PV_HIGH)
+        self.fertilizer1ValveDriver.debug=True
+        self.fertilizer2ValveDriver=FertilizerValveDriver(PIN_N2, DIRECT_ACTION, EC_PV_LOW, EC_PV_HIGH)
+        self.fertilizer3ValveDiver=FertilizerValveDriver(PIN_N3, DIRECT_ACTION, EC_PV_LOW, EC_PV_HIGH)
+        self.fertilizer4ValveDriver=FertilizerValveDriver(PIN_N4, DIRECT_ACTION, EC_PV_LOW, EC_PV_HIGH)
         
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
@@ -65,76 +74,73 @@ class Cron:
         GPIO.setup(PIN_S1, GPIO.OUT, initial=GPIO.PUD_DOWN)
     
     def run(self):
-        i=30
-        while i>0:
-            i=i-1
-#         while True:
-            newWatering=self.getWatering()
-            if not (self.actWatering == newWatering):
-                timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-                print("%s: Watering: %s --> %s" % (timeStr, self.actWatering, newWatering))
-                
-                self.actWatering=newWatering
-                
-                if self.active == False and self.actWatering != None:
-#                     Mikser set active
-                    self.active=True
-#                     Sonda set active
-                    self.sonda.active=True
-#                     zawor
-                    print("Zawor: ->%s<-, czas: ->%s<-" % (self.actWatering.section.valve, self.actWatering.duration))
-################TEMP
-                    self.sectionValveDriver.change(self.actWatering.section.valve, self.actWatering.duration)
-#                     pompa
-                    self.pump.changeOn(self.actWatering.duration)
-
-#                     kwas
-################TEMP
-                    self.acidValveDriver.run(self.actWatering.duration, self.sonda, "pH", self.actWatering.recipe.ph)
-#                     nawoz
-#                     if self.actWatering.recipe.fertilizerI.description == "f1":
-#                         self.fertilizer1ValveDriver.run(newWatering.time, self.sonda, newWatering.recipe.ec)
-#                     elif self.actWatering.recipe.fertilizerI.description == "f3":
-#                         self.fertilizer2ValveDriver.run(newWatering.time, self.sonda, newWatering.recipe.ec)
-#                     elif self.actWatering.recipe.fertilizerI.description == "f3":
-#                         self.fertilizer3ValveDriver.run(newWatering.time, self.sonda, newWatering.recipe.ec)
-#                     elif self.actWatering.recipe.fertilizerI.description == "f4":
-#                         self.fertilizer4ValveDriver.run(newWatering.time, self.sonda, newWatering.recipe.ec)
-#                     
+        try:
+            i=50
+            while i>0:
+                i=i-1
+    #         while True:
+                newWatering=self.getWatering()
+                if not (self.actWatering == newWatering):
+                    timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+                    print("%s: Watering: %s --> %s" % (timeStr, self.actWatering, newWatering))
                     
-#                     self.timerThread=threading.Thread(target=self.timer, args=(newWatering.time))
-                    self.timerThread=threading.Thread(target=self.timer, args=[self.actWatering.duration])
-                    self.timerThread.daemon=True
-                    self.timerThread.start()
-            else:
-                pass
+                    self.actWatering=newWatering
+                    
+                    if self.active == False and self.actWatering != None:
+    #                     Mikser set active
+                        self.active=True
+    #                     Sonda set active
+                        self.sonda.active=True
+    #                     zawor
+                        print("Sekcja: ->%s<-, czas: ->%s<-, nawoz: ->%s<-" % (self.actWatering.section.valve, self.actWatering.duration, self.actWatering.recipe.fertilizerI.description))
+    ################TEMP
+                        self.sectionValveDriver.change(self.actWatering.section.valve, self.actWatering.duration)
+    #                     pompa
+                        self.pump.changeOn(self.actWatering.duration)
+    
+    #                     kwas
+    ################TEMP
+                        self.acidValveDriver.run(self.actWatering.duration, self.sonda, "pH", self.actWatering.recipe.ph)
+    #                     nawoz
             
-#             spij przez sekunde
-            time.sleep(1)
-#             logowanie parametrow
-            if self.active and i%10==0:
-                print("Sleep %s" % i)
-#                 sonda parametry
-                read=Read()
-                read.ec=self.sonda.ec
-                read.ph=self.sonda.ph
-                read.temp=self.sonda.t
-                read.pub_date=datetime.now(tz=timezone.get_current_timezone())
-                read.save()
-                
-#                 
-#         except Exception as ex:
+                        if self.actWatering.recipe.fertilizerI.description == "N1":
+                            self.fertilizer1ValveDriver.run(self.actWatering.duration, self.sonda, "Ec", self.actWatering.recipe.ec)
+                        elif self.actWatering.recipe.fertilizerI.description == "f3":
+                            self.fertilizer2ValveDriver.run(newWatering.time, self.sonda, newWatering.recipe.ec)
+                        elif self.actWatering.recipe.fertilizerI.description == "f3":
+                            self.fertilizer3ValveDriver.run(newWatering.time, self.sonda, newWatering.recipe.ec)
+                        elif self.actWatering.recipe.fertilizerI.description == "f4":
+                            self.fertilizer4ValveDriver.run(newWatering.time, self.sonda, newWatering.recipe.ec)
+
+                        self.timerThread=threading.Thread(target=self.timer, args=[self.actWatering.duration])
+                        self.timerThread.daemon=True
+                        self.timerThread.start()
+                else:
+                    pass
+    #             spij przez sekunde
+                time.sleep(1)
+    #             logowanie parametrow
+                if self.active and i%2==0:
+                    print("Sleep %s" % i)
+    #                 sonda parametry
+                    read=Read()
+                    read.ec=self.sonda.ec
+                    read.ph=self.sonda.ph
+                    read.temp=self.sonda.t
+                    read.pub_date=datetime.now(tz=timezone.get_current_timezone())
+                    read.save()
+                             
+        except Exception as ex:
 #             traceback.print_exc()
-#         finally:
-#             GPIO.cleanup()
-#         
-#         Sonda set active False
-        timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-        print("%s CRON Mikser stop." % timeStr)
-        self.sonda.active=False
-        self.sonda.close()
-        
-        GPIO.cleanup()
+            print(ex.message)
+        finally:
+#             Sonda set active False
+            timeStr=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+            print("%s CRON Mikser stop." % timeStr)
+            self.sonda.active=False
+            self.sonda.close()
+            
+            GPIO.cleanup()
     
     #wyszukiwanie podlewania
     def getWatering(self):
